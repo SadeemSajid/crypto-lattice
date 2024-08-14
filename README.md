@@ -17,4 +17,9 @@ Please go through the following material for a better understanding of the subje
 ### Videos
 
 1. [Lattices: From Theory to Practice](https://youtube.com/playlist?list=PLgKuh-lKre129QSLTfRiA3CnePdIooH21&si=Jl9fitPx07q9iGGU)
-2. # [Lattices: Algorithms, Complexity, and Cryptography Boot Camp.](https://youtube.com/playlist?list=PLgKuh-lKre10rqiTYqJi6P4UlBRMQtPn0&si=qpzK13a5_en6jLSD)
+2. [Lattices: Algorithms, Complexity, and Cryptography Boot Camp.](https://youtube.com/playlist?list=PLgKuh-lKre10rqiTYqJi6P4UlBRMQtPn0&si=qpzK13a5_en6jLSD)
+3. [Post-Quantum Cryptography](https://youtu.be/dbP2cgTsrRo?si=eTbAsPy0q1BaDI1Y)
+
+### Misc
+
+1. [A Computational Introduction to Number Theory and Algebra. ](https://shoup.net/ntb/ntb-v2.pdf)
