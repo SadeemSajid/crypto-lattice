@@ -23,3 +23,9 @@ Please go through the following material for a better understanding of the subje
 ### Misc
 
 1. [A Computational Introduction to Number Theory and Algebra. ](https://shoup.net/ntb/ntb-v2.pdf)
+2. [The Gram-Schmidt process.](https://youtu.be/rHonltF77zI?si=Q0hqJde977f4IvcS)
+3. [The LLL Algorithm.](https://youtu.be/U8MI2a_BHHo?si=jWdv5FrCa9YuFmz8)
+
+## Algorithms
+
+The algorithms are in `algorithms/src`. You may find different implementations in their respective files.
