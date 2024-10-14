@@ -148,7 +148,7 @@ pub fn decrypt(
         (scalars - private_key.secret_vector.dot(&preabmle)).mapv(|x: i32| x.abs() % params.modulo);
 
     // Use this to print result
-    println!("Result: {:?}", result);
+    // println!("Result: {:?}", result);
 
     for elem in result.iter_mut() {
         if *elem <= params.modulo / 4 {
