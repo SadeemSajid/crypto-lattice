@@ -109,9 +109,9 @@ fn __error__(mean: f64, std_dev: f64, length: i64) -> Array1<i64> {
 pub fn setup() -> SecurityParameters {
     // Security params for the sessions
     let params: SecurityParameters = SecurityParameters {
-        dimensions: 128,
-        rank: 594,
-        modulo: 16411,
+        dimensions: 128, // N = Your choice
+        rank: 594,       // M: 1.1 * N * LogQ
+        modulo: 16411,   // Prime: N^2 < Q < 2N^2
     };
 
     return params;
