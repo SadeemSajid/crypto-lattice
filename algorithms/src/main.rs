@@ -2,8 +2,8 @@ mod regev;
 use ndarray::{Array1, Array2};
 
 fn main() {
-    let preamble: Array2<i32>;
-    let scalars: Array1<i32>;
+    let preamble: Array2<i64>;
+    let scalars: Array1<i64>;
 
     let pub_key: regev::PublicKey;
     let priv_key: regev::PrivateKey;

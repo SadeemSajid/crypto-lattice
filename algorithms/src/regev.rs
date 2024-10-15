@@ -5,22 +5,22 @@ use rand_distr::{Distribution, Normal};
 
 // We'll internally handle security parameter generations as well
 pub struct SecurityParameters {
-    pub dimensions: i32, // n
-    pub rank: i32,       // m
-    pub modulo: i32,     // q
+    pub dimensions: i64, // n
+    pub rank: i64,       // m
+    pub modulo: i64,     // q
 }
 
 pub struct PublicKey {
-    pub matrix: Array2<i32>,
-    pub public_vector: Array1<i32>,
+    pub matrix: Array2<i64>,
+    pub public_vector: Array1<i64>,
 }
 
 pub struct PrivateKey {
-    pub secret_vector: Array1<i32>,
+    pub secret_vector: Array1<i64>,
 }
 
-fn __gen_random_array2__(rows: i32, cols: i32, modulo: i32) -> Array2<i32> {
-    let mut matrix = Array2::<i32>::zeros((rows as usize, cols as usize));
+fn __gen_random_array2__(rows: i64, cols: i64, modulo: i64) -> Array2<i64> {
+    let mut matrix = Array2::<i64>::zeros((rows as usize, cols as usize));
 
     let mut rng = rand::thread_rng();
     for elem in matrix.iter_mut() {
@@ -30,8 +30,8 @@ fn __gen_random_array2__(rows: i32, cols: i32, modulo: i32) -> Array2<i32> {
     return matrix;
 }
 
-fn __gen_random_array1__(size: i32, modulo: i32) -> Array1<i32> {
-    let mut matrix = Array1::<i32>::zeros(size as usize);
+fn __gen_random_array1__(size: i64, modulo: i64) -> Array1<i64> {
+    let mut matrix = Array1::<i64>::zeros(size as usize);
 
     let mut rng = rand::thread_rng();
     for elem in matrix.iter_mut() {
@@ -41,9 +41,13 @@ fn __gen_random_array1__(size: i32, modulo: i32) -> Array1<i32> {
     return matrix;
 }
 
-pub fn __str_to_bit__(text: String) -> Array1<i32> {
-    let base_vector: Vec<u32> = string_to_binary(&text).unwrap();
-    let mut bit_stream: Vec<u32> = vec![];
+pub fn __str_to_bit__(text: String) -> Array1<i64> {
+    let base_vector: Vec<u64> = string_to_binary(&text)
+        .unwrap()
+        .into_iter()
+        .map(|x| x as u64)
+        .collect();
+    let mut bit_stream: Vec<u64> = vec![];
 
     for byte in base_vector {
         let mut byte_string: String = byte.to_string();
@@ -55,19 +59,19 @@ pub fn __str_to_bit__(text: String) -> Array1<i32> {
         }
 
         for bit in byte_string.chars() {
-            bit_stream.push(bit.to_digit(2).unwrap() as u32);
+            bit_stream.push(bit.to_digit(2).unwrap() as u64);
         }
     }
 
     return Array1::from(
         bit_stream
             .into_iter()
-            .map(|x: u32| x as i32)
-            .collect::<Vec<i32>>(),
+            .map(|x: u64| x as i64)
+            .collect::<Vec<i64>>(),
     );
 }
 
-fn __bits_to_string__(bits: Array1<i32>) -> String {
+fn __bits_to_string__(bits: Array1<i64>) -> String {
     // Ensure the bit array length is divisible by 8.
     assert!(
         bits.len() % 8 == 0,
@@ -89,12 +93,12 @@ fn __bits_to_string__(bits: Array1<i32>) -> String {
     String::from_utf8(bytes).expect("Invalid UTF-8 sequence")
 }
 
-fn __error__(mean: f64, std_dev: f64, length: i32) -> Array1<i32> {
-    let mut matrix = Array1::<i32>::zeros(length as usize);
+fn __error__(mean: f64, std_dev: f64, length: i64) -> Array1<i64> {
+    let mut matrix = Array1::<i64>::zeros(length as usize);
     let normal: Normal<f64> = Normal::new(mean, std_dev).unwrap();
 
     for elem in matrix.iter_mut() {
-        *elem = normal.sample(&mut rand::thread_rng()) as i32;
+        *elem = normal.sample(&mut rand::thread_rng()) as i64;
     }
 
     return matrix;
@@ -105,15 +109,15 @@ fn __error__(mean: f64, std_dev: f64, length: i32) -> Array1<i32> {
 pub fn setup() -> SecurityParameters {
     // Security params for the sessions
     let params: SecurityParameters = SecurityParameters {
-        dimensions: 10,
-        rank: 25,
-        modulo: 181,
+        dimensions: 128,
+        rank: 594,
+        modulo: 16411,
     };
 
     return params;
 }
 
-// pub fn modify_params(_dimensions: i32, _rank: i32, _modulo: i32) -> SecurityParameters {
+// pub fn modify_params(_dimensions: i64, _rank: i64, _modulo: i64) -> SecurityParameters {
 //     return SecurityParameters {
 //         dimensions: _dimensions,
 //         rank: _rank,
@@ -127,7 +131,7 @@ pub fn key_gen(params: &SecurityParameters) -> (PublicKey, PrivateKey) {
 
     let s = __gen_random_array1__(params.dimensions, params.modulo);
 
-    let b = s.dot(&a) + __error__(0.0, 0.3, params.rank);
+    let b = s.dot(&a) + __error__(0.0, 0.069, params.rank);
 
     // Use this to show error
     // println!("Error: {:?}", &b - s.dot(&a));
@@ -136,7 +140,7 @@ pub fn key_gen(params: &SecurityParameters) -> (PublicKey, PrivateKey) {
     return (
         PublicKey {
             matrix: a,
-            public_vector: b.mapv(|x: i32| x % params.modulo),
+            public_vector: b.mapv(|x: i64| x % params.modulo),
         },
         PrivateKey { secret_vector: s },
     );
@@ -146,28 +150,28 @@ pub fn encrypt(
     plain_text: String,
     public_key: &PublicKey,
     params: &SecurityParameters,
-) -> (Array2<i32>, Array1<i32>) {
+) -> (Array2<i64>, Array1<i64>) {
     let bit_stream = __str_to_bit__(plain_text);
 
     // random vector x
-    let x = __gen_random_array2__(params.rank, bit_stream.len() as i32, 2);
+    let x = __gen_random_array2__(params.rank, bit_stream.len() as i64, 2);
 
-    let preamble = public_key.matrix.dot(&x).mapv(|x: i32| x % params.modulo);
+    let preamble = public_key.matrix.dot(&x).mapv(|x: i64| x % params.modulo);
 
     let scalars = (public_key.public_vector.dot(&x) + ((bit_stream * params.modulo) / 2))
-        .mapv(|x: i32| x % params.modulo);
+        .mapv(|x: i64| x % params.modulo);
 
     return (preamble, scalars);
 }
 
 pub fn decrypt(
-    preabmle: Array2<i32>,
-    scalars: Array1<i32>,
+    preabmle: Array2<i64>,
+    scalars: Array1<i64>,
     private_key: &PrivateKey,
     params: &SecurityParameters,
 ) -> String {
     let mut result =
-        (scalars - private_key.secret_vector.dot(&preabmle)).mapv(|x: i32| x.abs() % params.modulo);
+        (scalars - private_key.secret_vector.dot(&preabmle)).mapv(|x: i64| x.abs() % params.modulo);
 
     // Use this to print result
     // println!("Result: {:?}", result);
