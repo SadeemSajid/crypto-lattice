@@ -4,6 +4,7 @@ Test Inputs: 128, 256, 512, 1024
 
 */
 
+mod lizard;
 mod regev;
 use ndarray::{Array1, Array2};
 use rand::Rng;
@@ -63,6 +64,29 @@ fn regev(message_length: i64) {
     println!("Result: {}", plain_text_bits == result);
 }
 
+fn lizard(message_length: i64) {
+    let pub_key: lizard::PublicKey;
+    let priv_key: lizard::PrivateKey;
+
+    let plain_text = __gen_random_array1__(message_length, 2);
+
+    println!("Message {:?}", plain_text);
+
+    let params: lizard::SecurityParameters = lizard::setup();
+
+    (pub_key, priv_key) = lizard::key_gen(&params);
+
+    let cipher = lizard::encrypt(&plain_text, &pub_key, &params);
+
+    println!("{:?}", cipher);
+}
+
 fn main() {
-    regev(128);
+    // Enable the one you want to test
+    // for lengths in 1..=4 {
+    //     // regev(128 * lengths);
+    //     lizard(128 * lengths);
+    // }
+
+    lizard(10);
 }
