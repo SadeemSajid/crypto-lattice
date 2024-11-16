@@ -2,6 +2,10 @@ use ndarray::{Array1, Array2};
 use rand::Rng;
 use rand_distr::{Distribution, Normal};
 
+const N: i64 = 128;
+const M: i64 = 594;
+const Q: i64 = 16411;
+
 // We'll internally handle security parameter generations as well
 pub struct SecurityParameters {
     pub dimensions: i64, // n
@@ -56,9 +60,9 @@ fn __error__(mean: f64, std_dev: f64, length: i64) -> Array1<i64> {
 pub fn setup() -> SecurityParameters {
     // Security params for the sessions
     let params: SecurityParameters = SecurityParameters {
-        dimensions: 128, // N = Your choice
-        rank: 594,       // M: 1.1 * N * LogQ
-        modulo: 16411,   // Prime: N^2 < Q < 2N^2
+        dimensions: N, // N = Your choice
+        rank: M,       // M: 1.1 * N * LogQ
+        modulo: Q,     // Prime: N^2 < Q < 2N^2
     };
 
     return params;
@@ -94,7 +98,7 @@ pub fn key_gen(params: &SecurityParameters) -> (PublicKey, PrivateKey) {
 }
 
 pub fn encrypt(
-    plain_text: Array1<i64>,
+    plain_text: &Array1<i64>,
     public_key: &PublicKey,
     params: &SecurityParameters,
 ) -> (Array2<i64>, Array1<i64>) {
