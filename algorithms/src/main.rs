@@ -87,24 +87,42 @@ fn ringlwe(message_length: i64) {
     let pub_key: ringlwe::PublicKey;
     let priv_key: ringlwe::PrivateKey;
 
+    let preamble: Vec<i64>;
+    let scalars: Vec<i64>;
+
     let raw = __gen_random_array1__(message_length, 2);
     let plain_text: Vec<i64> = raw.to_vec();
 
-    println!("Message {:?}", plain_text);
+    let mut start: Instant = Instant::now();
+    let mut duration: Duration;
 
     let params: ringlwe::SecurityParameters = ringlwe::setup();
 
+    duration = start.elapsed();
+    println!("Time Setup: {:?}", duration);
+
+    start = Instant::now();
+
     (pub_key, priv_key) = ringlwe::key_gen(&params);
 
-    println!("Priv Key: {:?}", priv_key.secret_vector);
-    println!(
-        "Pub Key: \n{:?}\n{:?}",
-        pub_key.polynomial, pub_key.error_polynomial
-    );
+    duration = start.elapsed();
+    println!("Time KeyGen: {:?}", duration);
 
-    let cipher = ringlwe::encrypt(&plain_text, &params, &pub_key);
+    start = Instant::now();
 
-    // println!("{:?}", cipher);
+    (preamble, scalars) = ringlwe::encrypt(&plain_text, &params, &pub_key);
+
+    duration = start.elapsed();
+    println!("Time Enc: {:?}", duration);
+
+    start = Instant::now();
+
+    let result = ringlwe::decrypt(&preamble, &scalars, &params, &priv_key);
+
+    duration = start.elapsed();
+    println!("Time Dec: {:?}", duration);
+
+    println!("Success: {}", result == plain_text);
 }
 
 fn main() {

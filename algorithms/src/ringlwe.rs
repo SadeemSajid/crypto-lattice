@@ -1,14 +1,14 @@
-// TODO: We can use rustfft which reduces time to O(nlogn)
+use std::vec;
+
 use rustfft::num_traits::Zero;
 use rustfft::{num_complex::Complex, FftPlanner};
-
-use polynomial::Polynomial;
 
 use rand::Rng;
 use rand_distr::{Distribution, Normal};
 
 const N: i64 = 256;
 const Q: i64 = 3329;
+const STD_DEV: f64 = 1.0;
 
 pub struct SecurityParameters {
     pub dimension: i64,
@@ -24,6 +24,7 @@ pub struct PublicKey {
     pub error_polynomial: Vec<i64>,
 }
 
+// Add polynomials
 fn add(a: &[i64], b: &[i64]) -> Vec<i64> {
     let mut result: Vec<i64> = vec![0; a.len()];
     if a.len() != b.len() {
@@ -32,6 +33,19 @@ fn add(a: &[i64], b: &[i64]) -> Vec<i64> {
 
     for iter in 0..a.len() {
         result[iter] = a[iter] + b[iter];
+    }
+    result
+}
+
+// Subtract polynomials
+fn sub(a: &[i64], b: &[i64]) -> Vec<i64> {
+    let mut result: Vec<i64> = vec![0; a.len()];
+    if a.len() != b.len() {
+        panic!("Vector lengths must be equal for subtraction!");
+    }
+
+    for iter in 0..a.len() {
+        result[iter] = a[iter] - b[iter];
     }
     result
 }
@@ -88,12 +102,13 @@ fn multiply(a: &[i64], b: &[i64]) -> Vec<i64> {
         .collect()
 }
 
-fn gen_random_polynomial(size: i64, modulo: i64) -> Vec<i64> {
+// Sample a small polynomial
+fn gen_small_polynomial(size: i64) -> Vec<i64> {
     let mut matrix: Vec<i64> = vec![0; size as usize];
 
     let mut rng = rand::thread_rng();
     for elem in matrix.iter_mut() {
-        *elem = rng.gen_range(0..modulo);
+        *elem = rng.gen_range(-1..=1);
     }
 
     return matrix;
@@ -119,14 +134,16 @@ pub fn setup() -> SecurityParameters {
 
 pub fn key_gen(params: &SecurityParameters) -> (PublicKey, PrivateKey) {
     // Secret vector
-    let secret: Vec<i64> = gen_random_polynomial(params.dimension, params.modulo);
+    let secret: Vec<i64> = gen_small_polynomial(params.dimension);
 
     // Random polynomial
-    let poly: Vec<i64> = gen_random_polynomial(params.dimension, params.modulo);
+    let poly: Vec<i64> = gen_small_polynomial(params.dimension);
 
     // B
+    // a.s
     let mul_result: Vec<i64> = reduce(&multiply(&poly, &secret), params.dimension, params.modulo);
-    let mut error_poly: Vec<i64> = add(&mul_result, &error(0.0, 1.0, params.dimension));
+    // a.s + e1
+    let mut error_poly: Vec<i64> = add(&mul_result, &error(0.0, STD_DEV, params.dimension));
     error_poly.iter_mut().for_each(|x| *x %= params.modulo);
 
     return (
@@ -145,9 +162,9 @@ pub fn encrypt(
     params: &SecurityParameters,
     key: &PublicKey,
 ) -> (Vec<i64>, Vec<i64>) {
-    let error_1 = error(0.0, 1.0, params.dimension);
-    let error_2 = error(0.0, 1.0, params.dimension);
-    let r = error(0.0, 1.0, params.dimension);
+    let error_1 = error(0.0, STD_DEV, params.dimension);
+    let error_2 = error(0.0, STD_DEV, params.dimension);
+    let r = error(0.0, STD_DEV, params.dimension);
 
     // preamble
     let preamble = add(
@@ -179,4 +196,29 @@ pub fn encrypt(
     return (preamble, scalars);
 }
 
-pub fn decrypt() {}
+pub fn decrypt(
+    preamble: &Vec<i64>,
+    scalars: &Vec<i64>,
+    params: &SecurityParameters,
+    key: &PrivateKey,
+) -> Vec<i64> {
+    let mut r: Vec<i64> = sub(
+        &scalars,
+        &reduce(
+            &multiply(&preamble, &key.secret_vector),
+            params.dimension,
+            params.modulo,
+        ),
+    );
+    r.iter_mut().for_each(|x| *x %= params.modulo);
+
+    let mut result: Vec<i64> = vec![0; params.dimension as usize];
+    for i in 0..params.dimension {
+        if r[i as usize] < params.modulo / 4 {
+            result[i as usize] = 0;
+        } else {
+            result[i as usize] = 1;
+        }
+    }
+    result
+}
