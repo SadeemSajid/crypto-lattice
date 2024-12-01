@@ -2,6 +2,8 @@ use ndarray::{Array1, Array2};
 use rand::Rng;
 use rand_distr::{Distribution, Normal};
 
+// TODO: Divide input into N chunks
+
 const N: i64 = 128;
 const M: i64 = 594;
 const Q: i64 = 16411;

@@ -6,6 +6,7 @@ Test Inputs: 128, 256, 512, 1024
 
 mod lizard;
 mod regev;
+mod ringlwe;
 use ndarray::{Array1, Array2};
 use rand::Rng;
 use std::time::{Duration, Instant};
@@ -64,6 +65,7 @@ fn regev(message_length: i64) {
     println!("Result: {}", plain_text_bits == result);
 }
 
+// FIXME: Incomplete
 fn lizard(message_length: i64) {
     let pub_key: lizard::PublicKey;
     let priv_key: lizard::PrivateKey;
@@ -81,12 +83,36 @@ fn lizard(message_length: i64) {
     println!("{:?}", cipher);
 }
 
+fn ringlwe(message_length: i64) {
+    let pub_key: ringlwe::PublicKey;
+    let priv_key: ringlwe::PrivateKey;
+
+    let raw = __gen_random_array1__(message_length, 2);
+    let plain_text: Vec<i64> = raw.to_vec();
+
+    println!("Message {:?}", plain_text);
+
+    let params: ringlwe::SecurityParameters = ringlwe::setup();
+
+    (pub_key, priv_key) = ringlwe::key_gen(&params);
+
+    println!("Priv Key: {:?}", priv_key.secret_vector);
+    println!(
+        "Pub Key: \n{:?}\n{:?}",
+        pub_key.polynomial, pub_key.error_polynomial
+    );
+
+    let cipher = ringlwe::encrypt(&plain_text, &params, &pub_key);
+
+    // println!("{:?}", cipher);
+}
+
 fn main() {
     // Enable the one you want to test
     // for lengths in 1..=4 {
     //     // regev(128 * lengths);
-    //     lizard(128 * lengths);
+    //     // lizard(128 * lengths);
     // }
 
-    lizard(10);
+    ringlwe(256);
 }
