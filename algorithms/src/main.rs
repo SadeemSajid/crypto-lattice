@@ -72,15 +72,21 @@ fn lizard(message_length: i64) {
 
     let plain_text = __gen_random_array1__(message_length, 2);
 
-    println!("Message {:?}", plain_text);
+    let mut start: Instant = Instant::now();
+    let mut duration: Duration;
+
+    start = Instant::now();
 
     let params: lizard::SecurityParameters = lizard::setup();
 
+    duration = start.elapsed();
+    println!("Time KeyGen: {:?}", duration);
+
     (pub_key, priv_key) = lizard::key_gen(&params);
 
-    let cipher = lizard::encrypt(&plain_text, &pub_key, &params);
+    // let cipher = lizard::encrypt(&plain_text, &pub_key, &params);
 
-    println!("{:?}", cipher);
+    // println!("{:?}", cipher);
 }
 
 fn ringlwe(message_length: i64) {
@@ -127,10 +133,13 @@ fn ringlwe(message_length: i64) {
 
 fn main() {
     // Enable the one you want to test
-    // for lengths in 1..=4 {
-    //     // regev(128 * lengths);
-    //     // lizard(128 * lengths);
-    // }
-
-    ringlwe(256);
+    for lengths in 1..=4 {
+        println!("-------");
+        println!("Run: {}", lengths);
+        // println!("--- Regevs ---");
+        // regev(128 * lengths);
+        lizard(128 * lengths);
+    }
+    // println!("--- Ring-LWE (512) ---");
+    // ringlwe(512);
 }

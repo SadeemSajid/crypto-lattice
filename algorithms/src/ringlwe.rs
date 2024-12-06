@@ -6,7 +6,7 @@ use rustfft::{num_complex::Complex, FftPlanner};
 use rand::Rng;
 use rand_distr::{Distribution, Normal};
 
-const N: i64 = 256;
+const N: i64 = 512;
 const Q: i64 = 3329;
 const STD_DEV: f64 = 1.0;
 
@@ -55,7 +55,7 @@ fn reduce(poly: &[i64], degree: i64, modulo: i64) -> Vec<i64> {
     let mut result: Vec<i64> = vec![0; degree as usize];
     for i in degree..poly.len() as i64 {
         let wrap = (i - degree) as usize;
-        result[wrap] = (poly[wrap] + poly[i as usize]) % modulo;
+        result[wrap] = (poly[wrap] - poly[i as usize]) % modulo;
     }
 
     result
@@ -156,6 +156,9 @@ pub fn key_gen(params: &SecurityParameters) -> (PublicKey, PrivateKey) {
         },
     );
 }
+
+// TODO: Complete this
+fn encrypt_chunk() {}
 
 pub fn encrypt(
     plaintext: &[i64],
