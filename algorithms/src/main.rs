@@ -1,8 +1,4 @@
-/*
-
-Test Inputs: 128, 256, 512, 1024
-
-*/
+/* Test Inputs: 128, 256, 512, 1024 */
 
 mod lizard;
 mod regev;
@@ -133,13 +129,15 @@ fn ringlwe(message_length: i64) {
 
 fn main() {
     // Enable the one you want to test
-    for lengths in 1..=4 {
-        println!("-------");
-        println!("Run: {}", lengths);
-        // println!("--- Regevs ---");
-        // regev(128 * lengths);
-        lizard(128 * lengths);
-    }
+    // for lengths in 1..=4 {
+    //     // println!("-------");
+    //     // println!("Run: {}", lengths);
+    //     // println!("--- Regevs ---");
+    //     // regev(128 * lengths);
+    //     // lizard(128 * lengths);
+    // }
     // println!("--- Ring-LWE (512) ---");
     // ringlwe(512);
+
+    // Coppersmith Testing
 }
