@@ -1,10 +1,14 @@
 /* Test Inputs: 128, 256, 512, 1024 */
-
+// Comment this to allow warnings
+#![allow(warnings)]
+mod coppersmith;
 mod lizard;
 mod regev;
 mod ringlwe;
+
 use ndarray::{Array1, Array2};
 use rand::Rng;
+use rug::Integer;
 use std::time::{Duration, Instant};
 
 // Used to generate random bit stream for testing
@@ -129,15 +133,31 @@ fn ringlwe(message_length: i64) {
 
 fn main() {
     // Enable the one you want to test
-    // for lengths in 1..=4 {
-    //     // println!("-------");
-    //     // println!("Run: {}", lengths);
-    //     // println!("--- Regevs ---");
-    //     // regev(128 * lengths);
-    //     // lizard(128 * lengths);
-    // }
-    // println!("--- Ring-LWE (512) ---");
-    // ringlwe(512);
+    for lengths in 1..=4 {
+        println!("--------------");
+        println!("Run: {}", lengths);
+        println!("--- Regevs ---");
+        regev(128 * lengths);
+        // lizard(128 * lengths);
+    }
+    println!("======================");
+    println!("--- Ring-LWE (512) ---");
+    println!("======================");
+    ringlwe(512);
 
     // Coppersmith Testing
+    let n = Integer::from(77); // Public modulus
+    let e = 3; // Public exponent
+    let c = Integer::from(64); // Ciphertext
+    println!("=======================");
+    println!("--- Coppersmith RSA ---");
+    println!("=======================");
+    match coppersmith::low_public_exponent_attack(&n, e, &c) {
+        Some(plaintext) => {
+            println!("Recovered plaintext: {}", plaintext);
+        }
+        None => {
+            println!("No plaintext found. Ensure conditions are met (e.g., m^e < N).");
+        }
+    }
 }
