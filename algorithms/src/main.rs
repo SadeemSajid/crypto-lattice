@@ -2,6 +2,7 @@
 // Comment this to allow warnings
 #![allow(warnings)]
 mod coppersmith;
+// mod lizard;
 mod lizard;
 mod regev;
 mod ringlwe;
@@ -66,28 +67,28 @@ fn regev(message_length: i64) {
 }
 
 // FIXME: Incomplete
-fn lizard(message_length: i64) {
-    let pub_key: lizard::PublicKey;
-    let priv_key: lizard::PrivateKey;
+// fn lizard(message_length: i64) {
+//     let pub_key: lizard::PublicKey;
+//     let priv_key: lizard::PrivateKey;
 
-    let plain_text = __gen_random_array1__(message_length, 2);
+//     let plain_text = __gen_random_array1__(message_length, 2);
 
-    let mut start: Instant = Instant::now();
-    let mut duration: Duration;
+//     let mut start: Instant = Instant::now();
+//     let mut duration: Duration;
 
-    start = Instant::now();
+//     start = Instant::now();
 
-    let params: lizard::SecurityParameters = lizard::setup();
+//     let params: lizard::SecurityParameters = lizard::setup();
 
-    duration = start.elapsed();
-    println!("Time KeyGen: {:?}", duration);
+//     duration = start.elapsed();
+//     println!("Time KeyGen: {:?}", duration);
 
-    (pub_key, priv_key) = lizard::key_gen(&params);
+//     (pub_key, priv_key) = lizard::key_gen(&params);
 
-    // let cipher = lizard::encrypt(&plain_text, &pub_key, &params);
+//     // let cipher = lizard::encrypt(&plain_text, &pub_key, &params);
 
-    // println!("{:?}", cipher);
-}
+//     // println!("{:?}", cipher);
+// }
 
 fn ringlwe(message_length: i64) {
     let pub_key: ringlwe::PublicKey;
@@ -133,31 +134,40 @@ fn ringlwe(message_length: i64) {
 
 fn main() {
     // Enable the one you want to test
-    for lengths in 1..=4 {
-        println!("--------------");
-        println!("Run: {}", lengths);
-        println!("--- Regevs ---");
-        regev(128 * lengths);
-        // lizard(128 * lengths);
-    }
-    println!("======================");
-    println!("--- Ring-LWE (512) ---");
-    println!("======================");
-    ringlwe(512);
+    // for lengths in 1..=4 {
+    //     println!("--------------");
+    //     println!("Run: {}", lengths);
+    //     println!("--- Regevs ---");
+    //     regev(128 * lengths);
+    //     // lizard(128 * lengths);
+    // }
+    // println!("======================");
+    // println!("--- Ring-LWE (512) ---");
+    // println!("======================");
+    // ringlwe(512);
 
-    // Coppersmith Testing
-    let n = Integer::from(77); // Public modulus
-    let e = 3; // Public exponent
-    let c = Integer::from(64); // Ciphertext
-    println!("=======================");
-    println!("--- Coppersmith RSA ---");
-    println!("=======================");
-    match coppersmith::low_public_exponent_attack(&n, e, &c) {
-        Some(plaintext) => {
-            println!("Recovered plaintext: {}", plaintext);
-        }
-        None => {
-            println!("No plaintext found. Ensure conditions are met (e.g., m^e < N).");
-        }
-    }
+    // // Coppersmith Testing
+    // let n = Integer::from(77); // Public modulus
+    // let e = 3; // Public exponent
+    // let c = Integer::from(64); // Ciphertext
+    // println!("=======================");
+    // println!("--- Coppersmith RSA ---");
+    // println!("=======================");
+    // match coppersmith::low_public_exponent_attack(&n, e, &c) {
+    //     Some(plaintext) => {
+    //         println!("Recovered plaintext: {}", plaintext);
+    //     }
+    //     None => {
+    //         println!("No plaintext found. Ensure conditions are met (e.g., m^e < N).");
+    //     }
+    // }
+
+    let sk = lizard::gen_sk();
+    let pk = lizard::gen_pk(&sk);
+
+    let plaintext = [1u16; 256];
+    let ctx = lizard::encrypt(&pk, &plaintext);
+    let decrypted = lizard::decrypt(&sk, &ctx);
+
+    println!("Decrypted: {:?}", decrypted);
 }
