@@ -5,6 +5,7 @@ mod coppersmith;
 // mod lizard;
 mod lizard;
 mod module;
+mod multiparty;
 mod regev;
 mod ringlwe;
 
@@ -70,7 +71,7 @@ fn regev(message_length: i64) {
 }
 
 fn lizard() {
-    println!("======== LIZARD ========");
+    println!("\n======== LIZARD ========");
 
     let mut start: Instant = Instant::now();
     let mut duration: Duration;
@@ -189,10 +190,17 @@ fn main() {
     modulwe(512);
 
     lizard();
-    println!("======================");
+    println!("\n======================\n");
     println!("--- Ring-LWE (512) ---");
     println!("======================");
     ringlwe(512);
+
+    println!("\n======================");
+    println!("--- Interactive Multi-Party KEP ---");
+    println!("======================");
+
+    let num_users = 4;
+    multiparty::benchmark_key_exchange(num_users);
 
     // // Coppersmith Testing
     // let n = Integer::from(77); // Public modulus

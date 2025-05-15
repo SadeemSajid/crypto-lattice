@@ -57,29 +57,3 @@ pub fn decrypt(p1: &DVector<i64>, c: &DVector<i64>, s0: &DVector<i64>, q: i64) -
         }
     })
 }
-
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    let k: usize = 256;
-    let q: i64 = 12289;
-
-    let start = Instant::now();
-    let (a, s0, _, p0) = keygen(k, q);
-    let keygen_time = start.elapsed();
-
-    let m = DVector::from_element(k, 1); // test message: all 1s
-
-    let start = Instant::now();
-    let (p1, c) = encrypt(&a, &p0, &m, q);
-    let enc_time = start.elapsed();
-
-    let start = Instant::now();
-    let _ = decrypt(&p1, &c, &s0, q);
-    let dec_time = start.elapsed();
-
-    println!("======== MODULE-LWE ========");
-    println!("Parameter size: {}", k);
-    println!("Time KeyGen: {:.6}s", keygen_time.as_secs_f64());
-    println!("Time Enc: {:.6}ms", enc_time.as_secs_f64() * 1000.0);
-    println!("Time Dec: {:.6}ms", dec_time.as_secs_f64() * 1000.0);
-}
