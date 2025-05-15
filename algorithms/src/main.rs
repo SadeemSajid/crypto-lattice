@@ -1,15 +1,18 @@
-/* Test Inputs: 128, 256, 512, 1024 */
+/* Test Inputs: 128, 256, 512 */
 // Comment this to allow warnings
 #![allow(warnings)]
 mod coppersmith;
 // mod lizard;
 mod lizard;
+mod module;
 mod regev;
 mod ringlwe;
 
+use nalgebra::{DMatrix, DVector};
 use ndarray::{Array1, Array2};
 use rand::Rng;
 use rug::Integer;
+use rustfft::Length;
 use std::time::{Duration, Instant};
 
 // Used to generate random bit stream for testing
@@ -66,29 +69,43 @@ fn regev(message_length: i64) {
     println!("Result: {}", plain_text_bits == result);
 }
 
-// FIXME: Incomplete
-// fn lizard(message_length: i64) {
-//     let pub_key: lizard::PublicKey;
-//     let priv_key: lizard::PrivateKey;
+fn lizard() {
+    println!("======== LIZARD ========");
 
-//     let plain_text = __gen_random_array1__(message_length, 2);
+    let mut start: Instant = Instant::now();
+    let mut duration: Duration;
 
-//     let mut start: Instant = Instant::now();
-//     let mut duration: Duration;
+    let sk = lizard::gen_sk();
+    let pk = lizard::gen_pk(&sk);
 
-//     start = Instant::now();
+    duration = start.elapsed();
+    println!("Time KeyGen: {:?}", duration);
 
-//     let params: lizard::SecurityParameters = lizard::setup();
+    // println!("SECRET KEY: {:?}", sk);
+    // println!("PUBLIC KEY: A {:?} || B: {:?}", pk.a, pk.b);
 
-//     duration = start.elapsed();
-//     println!("Time KeyGen: {:?}", duration);
+    let plaintext = [1u16; 256];
 
-//     (pub_key, priv_key) = lizard::key_gen(&params);
+    // println!("PLAINTEXT: {:?}", plaintext);
 
-//     // let cipher = lizard::encrypt(&plain_text, &pub_key, &params);
+    start = Instant::now();
 
-//     // println!("{:?}", cipher);
-// }
+    let ctx = lizard::encrypt(&pk, &plaintext);
+
+    duration = start.elapsed();
+    println!("Time Enc: {:?}", duration);
+
+    // println!("CIPHERTEXT: Preamble {:?} || Scalars {:?}", ctx.a, ctx.b);
+
+    start = Instant::now();
+
+    let decrypted = lizard::decrypt(&sk, &ctx);
+
+    duration = start.elapsed();
+    println!("Time Dec: {:?}", duration);
+
+    // println!("DECRYPTED: {:?}", decrypted);
+}
 
 fn ringlwe(message_length: i64) {
     let pub_key: ringlwe::PublicKey;
@@ -132,19 +149,50 @@ fn ringlwe(message_length: i64) {
     println!("Success: {}", result == plain_text);
 }
 
+fn modulwe(size: usize) {
+    let k: usize = size;
+    let q: i64 = 12289;
+
+    let start = Instant::now();
+    let (a, s0, _, p0) = module::keygen(k, q);
+    let keygen_time = start.elapsed();
+
+    let m = DVector::from_element(k, 1);
+
+    let start = Instant::now();
+    let (p1, c) = module::encrypt(&a, &p0, &m, q);
+    let enc_time = start.elapsed();
+
+    let start = Instant::now();
+    let _ = module::decrypt(&p1, &c, &s0, q);
+    let dec_time = start.elapsed();
+
+    println!("\n======== MODULE-LWE ========");
+    println!("Parameter size: {}", k);
+    println!("Time KeyGen: {:.6}s", keygen_time.as_secs_f64());
+    println!("Time Enc: {:.6}ms", enc_time.as_secs_f64() * 1000.0);
+    println!("Time Dec: {:.6}ms", dec_time.as_secs_f64() * 1000.0);
+}
+
 fn main() {
     // Enable the one you want to test
-    // for lengths in 1..=4 {
-    //     println!("--------------");
-    //     println!("Run: {}", lengths);
-    //     println!("--- Regevs ---");
-    //     regev(128 * lengths);
-    //     // lizard(128 * lengths);
-    // }
-    // println!("======================");
-    // println!("--- Ring-LWE (512) ---");
-    // println!("======================");
-    // ringlwe(512);
+    for lengths in 1..=4 {
+        println!("======================");
+        println!("--- REGEV ({}) ---", 128 * lengths);
+        println!("======================");
+        regev(128 * lengths);
+    }
+
+    // Test Module LWE
+    modulwe(128);
+    modulwe(256);
+    modulwe(512);
+
+    lizard();
+    println!("======================");
+    println!("--- Ring-LWE (512) ---");
+    println!("======================");
+    ringlwe(512);
 
     // // Coppersmith Testing
     // let n = Integer::from(77); // Public modulus
@@ -156,18 +204,11 @@ fn main() {
     // match coppersmith::low_public_exponent_attack(&n, e, &c) {
     //     Some(plaintext) => {
     //         println!("Recovered plaintext: {}", plaintext);
+    //         println!("N, E: {}, {}", n, e);
+    //         println!("Ciphertext: {}", c);
     //     }
     //     None => {
     //         println!("No plaintext found. Ensure conditions are met (e.g., m^e < N).");
     //     }
     // }
-
-    let sk = lizard::gen_sk();
-    let pk = lizard::gen_pk(&sk);
-
-    let plaintext = [1u16; 256];
-    let ctx = lizard::encrypt(&pk, &plaintext);
-    let decrypted = lizard::decrypt(&sk, &ctx);
-
-    println!("Decrypted: {:?}", decrypted);
 }

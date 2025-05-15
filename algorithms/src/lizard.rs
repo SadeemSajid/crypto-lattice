@@ -41,14 +41,14 @@ type SecretKey = [[i16; LWE_N]; LWE_L];
 
 // Public key
 pub struct PublicKey {
-    a: [[u16; LWE_N]; LWE_M],
-    b: [[u16; LWE_L]; LWE_M],
+    pub a: [[u16; LWE_N]; LWE_M],
+    pub b: [[u16; LWE_L]; LWE_M],
 }
 
 // Ciphertext
 pub struct Ciphertext {
-    a: [u16; LWE_N],
-    b: [u16; LWE_L],
+    pub a: [u16; LWE_N],
+    pub b: [u16; LWE_L],
 }
 
 // Generate secret key
